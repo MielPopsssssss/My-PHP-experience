@@ -8,45 +8,53 @@
 
 
 <?php
-//Select database
 
 
-$query = "SELECT text_post, userid_post FROM post ";/*where status = 1 and qid =".$id;*/
-echo $query;
-$result=dbquery($query);
-if (!$result) {
-  die('Invalid query: ' . mysql_error());
-}
-$num_rows = mysql_num_rows($result);
-if($num_rows==0) {
- echo '<center><font color="red"><b>No post found!!</b></font></center>';
-}
-else {
-$row = mysql_fetch_array($result);
-echo $row['text_post'];
-echo $row['userid_post'];
-}
+  $query = $conn->query('SELECT * FROM post');
+
+while($m = $query->fetch_array()){
+  $useridtmp = $m['userid_post'];
+  $username = $m['username_post'];
+  $postid = $m['id_post'];?>
+  <div class="columns is-mobile is-centered">
+    <div class="column is-half">
+      <div class="box">
+      <?php echo "<strong>Posté par : ".$username."</strong>";?>
+      <br><?php echo "<p class='bd-notification is-primary'>".$m['text_post']."</p>"; ?></br>
+      <button class="button is-info is-outlined">Like</button>
 
 
-?>
+
+<?php if (isset($_SESSION["userid"])){?>
+        <form action = "answer.php" method="POST" enctype = "multipart/form-data">
+          <input class="input is-primary" type="text" name="text" placeholder="Répondre"/>
+          <input type="hidden" name="postid" value="<?php echo htmlspecialchars($postid);?>"/>
+          <button class="button" type="submit" name="submit" >Envoyer</button>
+        </form><!--je dois envoyer postid dans le form a answer.php-->
 
 
-<div class="heart-btn">
-  <div class="content">
-    <span class="heart"></span>
-    <span class="text">Like</span>
+
+<?php } else{ ?>
+        <div class="control">
+          <input class="input is-primary" type="text" placeholder="Connectez-vous pour répondre" disabled>
+          <button class="button">Envoyer</button>
+        </div>
+<?php }?>
+<?php 
+      $querycomment = $conn->query("SELECT * FROM post_comment WHERE id_post='$postid'");
+      if ($querycomment){
+        while($comment = $querycomment->fetch_array()){
+          echo "<p><strong>".$comment['username_comment']." a répondu :</strong></p>";
+          echo $comment['comment_text'];
+        } 
+      }?>
+      </div>
+    </div>
   </div>
-</div>
-
-<script>
-  $(document).ready(function(){
-    $('.content').click(function(){
-      $('.content').toggleClass("heart-active")
-      $('.text').toggleClass("heart-active")
-      $('.heart').toggleClass("heart-active")
-    });
-  });
-</script>
+  <?php
+}
+?>
+  
 
 <style>
 body{
@@ -54,5 +62,4 @@ body{
 }
 </style>
 <?php
-    include_once 'footer.php';
-?>
+    include_once 'footer.php'; ?>
